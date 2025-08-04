@@ -1,0 +1,67 @@
+# ===============================================
+# Configuration Spring Boot
+# ===============================================
+spring:
+  application:
+    name: commande-service # Le nom de l'application
+
+  # -----------------------------------------------
+  # Configuration de la source de données (pour GCP)
+  # -----------------------------------------------
+  datasource:
+    # URL utilisant le Cloud SQL Socket Factory pour une connexion sécurisée.
+    url: jdbc:mysql://google/commande_db?socketFactory=com.google.cloud.sql.mysql.SocketFactory&cloudSqlInstance=gcp-project-20250702:europe-west1:microservices-db
+    username: root
+    password: mi@nDR1s04
+
+  # -----------------------------------------------
+  # Configuration de JPA/Hibernate
+  # -----------------------------------------------
+  jpa:
+    hibernate:
+      # 'update' met à jour le schéma de la BDD. Pratique en dev.
+      ddl-auto: update
+    # Affiche les requêtes SQL dans la console pour le débogage.
+    show-sql: true
+    # S'assure que data.sql est exécuté APRES la création des tables.
+    defer-datasource-initialization: true
+
+# ===============================================
+# Configuration des propriétés personnalisées
+# ===============================================
+
+# L'URL du service produit pour l'appel synchrone.
+# Cette valeur sera surchargée par une variable d'environnement sur Cloud Run.
+service:
+  produit:
+    url: http://localhost:8082
+
+# Le nom du topic Pub/Sub pour la communication asynchrone avec le service de notification.
+app:
+  pubsub:
+    topic-name: commandes-creees
+
+---
+
+# ===============================================
+#       CONFIGURATION POUR LE DÉVELOPPEMENT LOCAL
+#    (À activer en décommentant et en utilisant un profil 'dev')
+# ===============================================
+
+# Pour utiliser cette section, lancez l'application avec le profil 'dev' :
+# - Dans votre IDE, ajoutez dans les VM options : -Dspring.profiles.active=dev
+# - En ligne de commande : mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+#spring:
+#  config:
+#    activate:
+#      on-profile: dev # Ces propriétés ne s'appliquent que si le profil 'dev' est actif
+#
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/commande_db?createDatabaseIfNotExist=true
+#    username: root
+#    password: mi@nDR1s04 # Votre mot de passe local
+#
+#service:
+#  produit:
+#    url: http://localhost:8082
