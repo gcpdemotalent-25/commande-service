@@ -34,16 +34,12 @@ spring:
 # Cette valeur sera surchargée par une variable d'environnement sur Cloud Run.
 service:
   produit:
-    url: https://produit-service-usut6o4i3q-ew.a.run.app/produits # url: http://localhost:8082
-  notification:
-    url: https://notification-service-71332585849.europe-west1.run.app/notifications
+    url: https://produit-service-usut6o4i3q-ew.a.run.app/produits
 
 # Le nom du topic Pub/Sub pour la communication asynchrone avec le service de notification.
 app:
   pubsub:
     topic-name: commandes-creees
-
----
 
 # ===============================================
 #       CONFIGURATION POUR LE DÉVELOPPEMENT LOCAL
