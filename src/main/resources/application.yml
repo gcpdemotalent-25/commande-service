@@ -3,43 +3,39 @@
 # ===============================================
 spring:
   application:
-    name: commande-service # Le nom de l'application
-  config:
-    activate:
-      on-profile: dev
+    name: commande-service
 
-  # -----------------------------------------------
-  # Configuration de la source de données (pour GCP)
-  # -----------------------------------------------
+  # --- Configuration Cloud SQL (méthode recommandée) ---
+  # Ces propriétés sont utilisées par spring-cloud-gcp-starter-sql pour auto-configurer la connexion.
+  cloud:
+    gcp:
+      sql:
+        # Le nom de connexion de l'instance Cloud SQL
+        instance-connection-name: "gcp-project-20250702:europe-west1:microservices-db"
+        # Le nom de la base de données DANS l'instance
+        database-name: "commande_db"
+
+  # --- Configuration générale de la source de données ---
   datasource:
-    # URL utilisant le Cloud SQL Socket Factory pour une connexion sécurisée.
-    url: jdbc:mysql://google/commande_db?socketFactory=com.google.cloud.sql.mysql.SocketFactory&cloudSqlInstance=gcp-project-20250702:europe-west1:microservices-db
+    # Pas besoin de spécifier l'URL ici, le starter s'en chargera pour vous !
     username: root
+    # Utilisez une variable d'environnement pour le mot de passe, c'est une meilleure pratique.
     password: mi@nDR1s04
 
-  # -----------------------------------------------
-  # Configuration de JPA/Hibernate
-  # -----------------------------------------------
+  # --- Configuration JPA ---
   jpa:
     hibernate:
-      # 'update' met à jour le schéma de la BDD. Pratique en dev.
       ddl-auto: update
-    # Affiche les requêtes SQL dans la console pour le débogage.
     show-sql: true
-    # S'assure que data.sql est exécuté APRES la création des tables.
     defer-datasource-initialization: true
 
 # ===============================================
 # Configuration des propriétés personnalisées
 # ===============================================
-
-# L'URL du service produit pour l'appel synchrone.
-# Cette valeur sera surchargée par une variable d'environnement sur Cloud Run.
 service:
   produit:
     url: https://produit-service-usut6o4i3q-ew.a.run.app/produits
 
-# Le nom du topic Pub/Sub pour la communication asynchrone avec le service de notification.
 app:
   pubsub:
     topic-name: commandes-creees
