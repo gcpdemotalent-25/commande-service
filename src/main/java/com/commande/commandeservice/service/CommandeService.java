@@ -2,6 +2,8 @@ package com.commande.commandeservice.service;
 
 import com.commande.commandeservice.CommandeRepository;
 import com.commande.commandeservice.model.Commande;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,29 +22,45 @@ public class CommandeService {
     @Autowired
     private RestTemplate restTemplate;
 
+    // C'est ici que la magie opère : Spring injecte un template pour interagir avec Pub/Sub
+    @Autowired
+    private PubSubTemplate pubSubTemplate;
+
+    // Injecter le nom du topic depuis application.properties
+    @Value("${app.pubsub.topic-name}")
+    private String topicName;
+
     @Value("${service.produit.url}")
     private String produitServiceUrl;
+    // Helper pour convertir des objets en JSON
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${service.notification.url}")
-    private String notificationServiceUrl;
-
-    public Commande creerCommande(Commande commande) {
-        // 1. Vérifier si le produit existe en appelant le service produit
-        // Note: Dans un vrai projet, on créerait des DTOs (Data Transfer Objects)
-        // pour ne pas dépendre directement de la structure de l'autre service.
+    public Commande creerCommande(Commande commande) throws Exception { // Ajout de "throws Exception"
+        // 1. Vérifier si le produit existe (logique synchrone inchangée)
         try {
             restTemplate.getForObject(produitServiceUrl + "/produits/" + commande.getProduitId(), Object.class);
         } catch (Exception e) {
             throw new RuntimeException("Produit non trouvé: " + commande.getProduitId());
         }
 
-        // 2. Si le produit existe, on enregistre la commande
+        // 2. Enregistrer la commande
         commande.setDateCommande(LocalDate.now());
         Commande savedCommande = commandeRepository.save(commande);
 
-        // 3. Envoyer une notification (appel asynchrone dans l'idéal)
-        String message = "Nouvelle commande " + savedCommande.getId() + " enregistrée.";
-        restTemplate.postForObject(notificationServiceUrl + "/notifications", Map.of("message", message), String.class);
+        // 3. Envoyer une notification DECOUPLEE via Pub/Sub
+        System.out.println("Publication d'un message sur le topic: " + topicName);
+
+        // Créer un payload simple (un message) pour la notification
+        Map<String, String> notificationPayload = Map.of(
+                "commandeId", savedCommande.getId().toString(),
+                "produitId", savedCommande.getProduitId().toString(),
+                "message", "Nouvelle commande " + savedCommande.getId() + " enregistrée."
+        );
+
+        // Convertir le payload en JSON et le publier
+        this.pubSubTemplate.publish(this.topicName, objectMapper.writeValueAsString(notificationPayload));
+
+        System.out.println("Message publié avec succès !");
 
         return savedCommande;
     }
@@ -50,4 +68,5 @@ public class CommandeService {
     public List<Commande> listerCommandes() {
         return commandeRepository.findAll();
     }
+
 }

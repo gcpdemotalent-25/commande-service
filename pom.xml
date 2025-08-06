@@ -15,7 +15,19 @@
     <description>Microservice pour la gestion des services</description>
     <properties>
         <java.version>11</java.version>
+        <spring-cloud-gcp.version>3.4.4</spring-cloud-gcp.version>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>spring-cloud-gcp-dependencies</artifactId>
+                <version>${spring-cloud-gcp.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -41,7 +53,11 @@
             <!-- La version peut changer, vérifiez la dernière sur Maven Central -->
             <version>1.11.0</version>
         </dependency>
-    </dependencies>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>spring-cloud-gcp-starter-pubsub</artifactId>
+            </dependency>
+        </dependencies>
     <build>
         <plugins>
             <plugin>
