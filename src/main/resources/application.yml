@@ -4,6 +4,9 @@
 spring:
   application:
     name: commande-service # Le nom de l'application
+  config:
+    activate:
+      on-profile: dev
 
   # -----------------------------------------------
   # Configuration de la source de données (pour GCP)
